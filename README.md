@@ -13,7 +13,7 @@ A local-first Electron desktop app that manages podcast subscriptions and genera
 - **AI Summaries** - Generate episode summaries with Google Gemini API
 - **Custom Prompts** - Set per-podcast prompts to tailor summary output
 - **Local Downloads** - Save episodes to local disk, organized by podcast
-- **Knowledge Base** - Browse all generated summaries grouped by podcast
+- **Documents** - Browse all generated summaries grouped by podcast
 - **Local-First** - SQLite database, no cloud dependency for core features
 - **Cross-Platform** - Windows and macOS
 
