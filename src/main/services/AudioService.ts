@@ -58,7 +58,7 @@ export class AudioService {
 
     // Download to temp
     const safeId = episodeId.replace(/[^a-zA-Z0-9\-_]/g, "_");
-    const tempPath = path.join(this.tempDir, `${episodeId}.mp3`);
+    const tempPath = path.join(this.tempDir, `${safeId}.mp3`);
     await this.downloadStream(episode.audio_url, tempPath);
 
     return {
