@@ -35,7 +35,11 @@ Go to the [Releases](https://github.com/yuno-404/PodSumAI/releases) page.
 **macOS:**
 1. Double-click the downloaded `.dmg`
 2. Drag **PodSumAI** into the **Applications** folder
-3. First launch: right-click the app > "Open" (to bypass Gatekeeper)
+3. First launch: open Terminal and run:
+   ```bash
+   xattr -cr /Applications/PodSumAI.app
+   ```
+   Then double-click the app to open (this is required for unsigned apps)
 
 ### Step 3: Set up your API Key
 
