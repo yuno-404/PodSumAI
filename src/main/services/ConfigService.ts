@@ -7,11 +7,22 @@ import type { DbStats } from "../../shared/types.js";
  * ConfigService - Application Configuration & Utilities
  *
  * Responsibilities:
- * - Manage Gemini API key (.env file read/write)
+ * - Manage Gemini API key (stored in userData directory)
  * - Provide database statistics
  */
 export class ConfigService {
-  constructor(private db: DatabaseManager) {}
+  private configDir: string;
+
+  constructor(
+    private db: DatabaseManager,
+    configDir: string,
+  ) {
+    this.configDir = configDir;
+  }
+
+  private get envPath(): string {
+    return path.join(this.configDir, ".env");
+  }
 
   /**
    * Save Gemini API key to .env file
@@ -29,10 +40,9 @@ export class ConfigService {
       );
     }
 
-    const envPath = path.join(process.cwd(), ".env");
     let envContent = "";
-    if (fs.existsSync(envPath)) {
-      envContent = fs.readFileSync(envPath, "utf8");
+    if (fs.existsSync(this.envPath)) {
+      envContent = fs.readFileSync(this.envPath, "utf8");
     }
 
     const keyLine = `GEMINI_API_KEY=${apiKey}`;
@@ -51,7 +61,8 @@ export class ConfigService {
       updatedLines.push(keyLine);
     }
 
-    fs.writeFileSync(envPath, updatedLines.join("\n"), "utf8");
+
+    fs.writeFileSync(this.envPath, updatedLines.join("\n"), "utf8");
   }
 
   /**
@@ -60,12 +71,11 @@ export class ConfigService {
    * @returns API key string, or empty string if not set
    */
   getApiKey(): string {
-    const envPath = path.join(process.cwd(), ".env");
-    if (!fs.existsSync(envPath)) {
+    if (!fs.existsSync(this.envPath)) {
       return "";
     }
 
-    const envContent = fs.readFileSync(envPath, "utf8");
+    const envContent = fs.readFileSync(this.envPath, "utf8");
     const lines = envContent.split("\n");
 
     for (const line of lines) {
@@ -84,17 +94,15 @@ export class ConfigService {
    * Remove Gemini API key from .env file
    */
   removeApiKey(): void {
-    const envPath = path.join(process.cwd(), ".env");
-    if (!fs.existsSync(envPath)) return;
+    if (!fs.existsSync(this.envPath)) return;
 
-    const envContent = fs.readFileSync(envPath, "utf8");
+    const envContent = fs.readFileSync(this.envPath, "utf8");
     const updatedLines = envContent
       .split("\n")
       .filter((line) => !line.startsWith("GEMINI_API_KEY="));
 
-    fs.writeFileSync(envPath, updatedLines.join("\n"), "utf8");
+    fs.writeFileSync(this.envPath, updatedLines.join("\n"), "utf8");
   }
-
 
   /**
    * Get database statistics for debugging

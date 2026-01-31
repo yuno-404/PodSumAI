@@ -97,7 +97,8 @@ function initializeServices() {
     // Initialize services
     const audioService = new AudioService(db);
     const podcastService = new PodcastService(db);
-    const configService = new ConfigService(db);
+    const configService = new ConfigService(db, app.getPath("userData"));
+
 
     // Get Gemini API key: prefer .env file (managed by ConfigService), fallback to process.env
     const geminiApiKey =
