@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
+import { useSaveApiKey, useRemoveApiKey } from "../hooks/useQueries";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ApiKeyModalProps {
   open: boolean;
@@ -14,6 +16,9 @@ export function ApiKeyModal({ open, onOpenChange }: ApiKeyModalProps) {
   >("idle");
   const [statusMessage, setStatusMessage] = useState("");
 
+  const queryClient = useQueryClient();
+  const saveApiKeyMutation = useSaveApiKey();
+  const removeApiKeyMutation = useRemoveApiKey();
   useEffect(() => {
     if (open) {
       loadApiKey();
@@ -48,21 +53,31 @@ export function ApiKeyModal({ open, onOpenChange }: ApiKeyModalProps) {
 
     setStatus("checking");
     setStatusMessage("Validating...");
-
-    try {
-      const result = await window.api.saveApiKey(apiKey.trim());
-      if (result.success) {
+    
+    saveApiKeyMutation.mutate(apiKey.trim(), {
+      onSuccess: () => {
         setStatus("valid");
         setStatusMessage("Valid - Connected to Gemini 2.5 Flash");
+        queryClient.invalidateQueries({ queryKey: ["api-key"] });
         onOpenChange(false);
-      } else {
+      },
+      onError: (error: Error) => {
         setStatus("invalid");
-        setStatusMessage(result.error || "Invalid API key");
-      }
-    } catch (error: any) {
-      setStatus("invalid");
-      setStatusMessage(error.message || "Failed to validate API key");
-    }
+        setStatusMessage(error.message || "Invalid API key");
+      },
+    });
+  };
+
+  const handleRemove = () => {
+    removeApiKeyMutation.mutate(undefined, {
+      onSuccess: () => {
+        setApiKey("");
+        setStatus("idle");
+        setStatusMessage("");
+        queryClient.invalidateQueries({ queryKey: ["api-key"] });
+        onOpenChange(false);
+      },
+    });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -226,22 +241,34 @@ export function ApiKeyModal({ open, onOpenChange }: ApiKeyModalProps) {
           </div>
 
           {/* Footer */}
-          <div className="flex justify-end gap-3 px-6 py-4 border-t border-[#27272a]">
-            <Dialog.Close asChild>
+          <div className="flex justify-between px-6 py-4 border-t border-[#27272a]">
+            <div>
+              {status === "valid" && (
+                <button
+                  onClick={handleRemove}
+                  className="px-4 py-2 rounded-lg text-status-error hover:bg-[#f43f5e1a] transition-colors text-sm"
+                >
+                  Remove API Key
+                </button>
+              )}
+            </div>
+            <div className="flex gap-3">
+              <Dialog.Close asChild>
+                <button
+                  className="px-4 py-2 rounded-lg text-[#a1a1aa] hover:text-[#f4f4f5] hover:bg-[#27272a] transition-colors text-sm"
+                  onClick={() => onOpenChange(false)}
+                >
+                  Cancel
+                </button>
+              </Dialog.Close>
               <button
-                className="px-4 py-2 rounded-lg text-[#a1a1aa] hover:text-[#f4f4f5] hover:bg-[#27272a] transition-colors text-sm"
-                onClick={() => onOpenChange(false)}
+                onClick={handleSave}
+                disabled={status === "checking" || !apiKey.trim()}
+                className="px-4 py-2 rounded-lg bg-accent-primary hover:bg-accent-primary/90 disabled:bg-[#27272a] disabled:text-[#52525b] text-white text-sm transition-colors"
               >
-                Cancel
+                {status === "checking" ? "Validating..." : "Save"}
               </button>
-            </Dialog.Close>
-            <button
-              onClick={handleSave}
-              disabled={status === "checking" || !apiKey.trim()}
-              className="px-4 py-2 rounded-lg bg-accent-primary hover:bg-accent-primary/90 disabled:bg-[#27272a] disabled:text-[#52525b] text-white text-sm transition-colors"
-            >
-              {status === "checking" ? "Validating..." : "Save"}
-            </button>
+            </div>
           </div>
         </Dialog.Content>
       </Dialog.Portal>

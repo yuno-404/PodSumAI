@@ -81,6 +81,22 @@ export class ConfigService {
   }
 
   /**
+   * Remove Gemini API key from .env file
+   */
+  removeApiKey(): void {
+    const envPath = path.join(process.cwd(), ".env");
+    if (!fs.existsSync(envPath)) return;
+
+    const envContent = fs.readFileSync(envPath, "utf8");
+    const updatedLines = envContent
+      .split("\n")
+      .filter((line) => !line.startsWith("GEMINI_API_KEY="));
+
+    fs.writeFileSync(envPath, updatedLines.join("\n"), "utf8");
+  }
+
+
+  /**
    * Get database statistics for debugging
    */
   getDbStats(): DbStats {

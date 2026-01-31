@@ -303,6 +303,38 @@ export function useSaveApiKey() {
   });
 }
 
+export function useRemoveApiKey() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!window.api) throw new Error("API not available");
+      const result = await window.api.removeApiKey();
+      if (!result.success) throw new Error(result.error);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["api-key"] });
+    },
+  });
+}
+
+export function useSyncAllPodcasts() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!window.api) throw new Error("API not available");
+      const result = await window.api.syncAllPodcasts();
+      if (!result.success) throw new Error(result.error);
+      return result.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["podcasts"] });
+      queryClient.invalidateQueries({ queryKey: ["episodes"] });
+    },
+  });
+}
+
 export function useGetApiKey() {
   return useQuery({
     queryKey: ["api-key"],

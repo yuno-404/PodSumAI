@@ -10,6 +10,7 @@ import { useToastStore } from "../stores/useToastStore";
 import { useGeneratingStore } from "../stores/useGeneratingStore";
 import type { Episode } from "../../shared/types";
 import { OverwriteAlertDialog } from "./OverwriteAlertDialog";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface EpisodeDetailProps {
   episode: Episode | null;
@@ -20,9 +21,12 @@ export function EpisodeDetail({
   episode,
   onMissingApiKey,
 }: EpisodeDetailProps) {
-  const { data: documents, isLoading: documentsLoading } = useDocuments(
-    episode?.id || null,
-  );
+  const queryClient = useQueryClient();
+  const {
+    data: documents,
+    isLoading: documentsLoading,
+    refetch: refetchDocuments,
+  } = useDocuments(episode?.id || null);
   const { data: apiKey } = useGetApiKey();
   const runSummary = useRunAiSummary();
   const [selectedDocIndex, setSelectedDocIndex] = useState(0);
@@ -83,6 +87,8 @@ export function EpisodeDetail({
         title: "Summary generated",
         duration: 3000,
       });
+      queryClient.invalidateQueries({ queryKey: ["documents", episode.id] });
+      refetchDocuments();
     } catch (error: any) {
       removeToast(loadingToastId);
       if (error.message === "API_KEY_MISSING") {
@@ -116,6 +122,8 @@ export function EpisodeDetail({
         title: "Summary generated",
         duration: 3000,
       });
+      queryClient.invalidateQueries({ queryKey: ["documents", episode.id] });
+      refetchDocuments();
     } catch (error: any) {
       removeToast(loadingToastId);
       if (error.message === "API_KEY_MISSING") {

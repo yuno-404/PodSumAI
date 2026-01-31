@@ -6,6 +6,7 @@ import { useDocuments, useRunAiSummary } from "../hooks/useQueries";
 import { useToastStore } from "../stores/useToastStore";
 import { useGeneratingStore } from "../stores/useGeneratingStore";
 import { OverwriteAlertDialog } from "./OverwriteAlertDialog";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface SummaryModalProps {
   open: boolean;
@@ -18,8 +19,12 @@ export function SummaryModal({
   onOpenChange,
   episodeId,
 }: SummaryModalProps) {
-  const { data: documents, isLoading: documentsLoading } =
-    useDocuments(episodeId);
+  const queryClient = useQueryClient();
+  const {
+    data: documents,
+    isLoading: documentsLoading,
+    refetch: refetchDocuments,
+  } = useDocuments(episodeId);
   const runSummary = useRunAiSummary();
   const [selectedDocIndex, setSelectedDocIndex] = useState(0);
   const [showOverwriteDialog, setShowOverwriteDialog] = useState(false);
@@ -76,6 +81,8 @@ export function SummaryModal({
         title: "Summary generated",
         duration: 3000,
       });
+      queryClient.invalidateQueries({ queryKey: ["documents", episodeId] });
+      refetchDocuments();
     } catch (error: any) {
       removeToast(loadingToastId);
       addToast({
@@ -105,6 +112,8 @@ export function SummaryModal({
         title: "Summary generated",
         duration: 3000,
       });
+      queryClient.invalidateQueries({ queryKey: ["documents", episodeId] });
+      refetchDocuments();
     } catch (error: any) {
       removeToast(loadingToastId);
       addToast({

@@ -48,6 +48,9 @@ declare global {
       // API Key Methods
       saveApiKey: (apiKey: string) => Promise<IPCResponse<void>>;
       getApiKey: () => Promise<IPCResponse<string>>;
+      removeApiKey: () => Promise<IPCResponse<void>>;
+      syncAllPodcasts: () => Promise<IPCResponse<{ synced: number }>>;
+
 
       // Event Listeners
       onFeedSynced: (

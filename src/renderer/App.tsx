@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAppStore } from "./stores/useAppStore";
 import { useToastStore } from "./stores/useToastStore";
@@ -19,6 +19,7 @@ import {
   useDownloadEpisode,
   useGetApiKey,
   useRunAiSummary,
+  useSyncAllPodcasts,
 } from "./hooks/useQueries";
 
 const queryClient = new QueryClient({
@@ -62,6 +63,16 @@ function AppContent() {
   const { data: apiKey } = useGetApiKey();
   const downloadMutation = useDownloadEpisode();
   const runSummary = useRunAiSummary();
+  const syncAll = useSyncAllPodcasts();
+  const hasSynced = useRef(false);
+
+  // Auto-sync all podcasts on startup
+  useEffect(() => {
+    if (podcasts.length > 0 && !hasSynced.current) {
+      hasSynced.current = true;
+      syncAll.mutate();
+    }
+  }, [podcasts]);
 
   const activePodcast =
     podcasts.find((p: any) => p.id === activePodcastId) || null;
@@ -166,11 +177,12 @@ function AppContent() {
   };
 
   const handleOverwriteConfirm = async () => {
-    if (pendingSummaryEpisodeId) {
-      await executeSummary(pendingSummaryEpisodeId);
-      setPendingSummaryEpisodeId(null);
-    }
+    const episodeId = pendingSummaryEpisodeId;
+    setPendingSummaryEpisodeId(null);
     setOverwriteDialogOpen(false);
+    if (episodeId) {
+      await executeSummary(episodeId);
+    }
   };
 
   const handleKnowledgeDocClick = (doc: any) => {

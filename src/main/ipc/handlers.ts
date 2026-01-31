@@ -247,5 +247,37 @@ export function registerHandlers(services: Services) {
     }),
   );
 
+  // ===== Sync All Podcasts =====
+
+  ipcMain.handle(
+    "sync_all_podcasts",
+    wrapHandler<{ synced: number }>(
+      "sync_all_podcasts",
+      async (event) => {
+        const podcasts = services.podcast.getAllPodcasts();
+        let synced = 0;
+
+        for (const podcast of podcasts) {
+          try {
+            const result = await services.podcast.syncPodcast(podcast.feed_url);
+            event.sender.send("feed_synced", {
+              type: "feed_synced",
+              podcastId: result.podcastId,
+              newCount: result.newCount,
+            });
+            synced++;
+          } catch (error) {
+            console.error(
+              `Failed to sync podcast: ${podcast.title}`,
+              error,
+            );
+          }
+        }
+
+        return { synced };
+      },
+    ),
+  );
+  
   console.log("IPC handlers registered successfully");
 }

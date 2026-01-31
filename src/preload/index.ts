@@ -69,6 +69,9 @@ contextBridge.exposeInMainWorld("api", {
   saveApiKey: (apiKey: string) => ipcRenderer.invoke("save_api_key", apiKey),
 
   getApiKey: () => ipcRenderer.invoke("get_api_key"),
+  removeApiKey: () => ipcRenderer.invoke("remove_api_key"),
+
+  syncAllPodcasts: () => ipcRenderer.invoke("sync_all_podcasts"),
 
   // ===== Event Listeners =====
 
