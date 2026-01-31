@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [react()],
 
   // Renderer process configuration
+  base: './',
   root: 'src/renderer',
   publicDir: '../../public',
 
