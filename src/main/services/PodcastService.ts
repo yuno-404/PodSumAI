@@ -2,6 +2,7 @@ import { Worker } from "worker_threads";
 import path from "path";
 import fs from "fs";
 import axios from "axios";
+import { shell } from "electron";
 import { DatabaseManager } from "../database/index.js";
 import type {
   RSSFeed,
@@ -161,7 +162,7 @@ export class PodcastService {
    * Delete podcast and all associated episodes
    * CRITICAL: Preserve documents (summaries) and cleanup downloaded audio files
    */
-  deletePodcast(podcastId: string) {
+  async deletePodcast(podcastId: string) {
     const episodes = this.db.getEpisodesByPodcast.all(podcastId) as Episode[];
 
     // Collect downloaded audio file paths for cleanup
@@ -169,39 +170,41 @@ export class PodcastService {
       .filter((ep) => ep.is_downloaded && ep.local_file_path)
       .map((ep) => ep.local_file_path);
 
-    // Collect documents to preserve (remove episode_id, keep content)
-    const documentsToPreserve = episodes.flatMap((ep) =>
-      (this.db.getDocumentsByEpisode.all(ep.id) as any[]).map((doc) => ({
-        content: doc.content,
-        created_at: doc.created_at,
-        used_prompt: doc.used_prompt,
-      })),
-    );
+    // // Collect documents to preserve (remove episode_id, keep content)
+    // const documentsToPreserve = episodes.flatMap((ep) =>
+    //   (this.db.getDocumentsByEpisode.all(ep.id) as any[]).map((doc) => ({
+    //     content: doc.content,
+    //     created_at: doc.created_at,
+    //     used_prompt: doc.used_prompt,
+    //   })),
+    // );
 
     // Delete podcast (cascade deletes episodes and their documents)
     this.db.deletePodcast.run(podcastId);
 
-    // Cleanup downloaded audio files
-    downloadedFilePaths.forEach((filePath) => {
+    // Move downloaded audio files to trash (not permanent delete)
+    for (const filePath of downloadedFilePaths) {
       if (filePath && fs.existsSync(filePath)) {
         try {
-          fs.unlinkSync(filePath);
+          await shell.trashItem(filePath);
         } catch (error) {
-          console.error(`Failed to delete audio file: ${filePath}`, error);
+          console.error(`Failed to trash audio file: ${filePath}`, error);
         }
       }
-    });
+    }
+
+
 
     // Re-insert preserved documents without episode_id (for Knowledge page)
-    documentsToPreserve.forEach((doc) => {
-      this.db.insertDocument.run(
-        this.db.generateId(),
-        null,
-        doc.content,
-        doc.created_at,
-        doc.used_prompt,
-      );
-    });
+    // documentsToPreserve.forEach((doc) => {
+    //   this.db.insertDocument.run(
+    //     this.db.generateId(),
+    //     null,
+    //     doc.content,
+    //     doc.created_at,
+    //     doc.used_prompt,
+    //   );
+    // });
   }
 
   /**

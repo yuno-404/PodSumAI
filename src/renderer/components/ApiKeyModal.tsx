@@ -75,8 +75,11 @@ export function ApiKeyModal({ open, onOpenChange }: ApiKeyModalProps) {
         setStatus("idle");
         setStatusMessage("");
         queryClient.invalidateQueries({ queryKey: ["api-key"] });
-        onOpenChange(false);
       },
+        onError: (error: Error) => {
+        etStatus("invalid");
+        etStatusMessage(error.message || "Failed to remove API key");
+    },
     });
   };
 
