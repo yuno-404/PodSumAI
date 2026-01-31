@@ -1,0 +1,106 @@
+{
+  "name": "podsumai",
+  "version": "0.1.0",
+  "description": "Local-first podcast manager with AI-powered summaries",
+  "main": "dist-electron/main/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:vite\" \"npm run dev:main\" \"npm run dev:preload\" \"npm run dev:electron\"",
+    "dev:vite": "vite",
+    "dev:main": "tsc -p tsconfig.node.json --watch",
+    "dev:preload": "node scripts/watch-preload.mjs",
+    "dev:electron": "wait-on http://localhost:5173 && wait-on dist-electron/main/index.js && wait-on dist-electron/preload/index.cjs && cross-env NODE_ENV=development node scripts/launch-electron.mjs",
+    "build": "npm run build:main && npm run build:preload && vite build && electron-builder",
+    "build:renderer": "vite build",
+    "build:main": "tsc -p tsconfig.node.json",
+    "build:preload": "tsc -p tsconfig.preload.json && node -e \"require('fs').renameSync('dist-electron/preload/index.js','dist-electron/preload/index.cjs')\"",
+    "lint": "eslint src/ --ext .ts,.tsx",
+    "lint:fix": "eslint src/ --ext .ts,.tsx --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
+    "rebuild": "npx electron-rebuild -f -w better-sqlite3"
+  },
+  "build": {
+    "appId": "com.podsumai.app",
+    "productName": "PodSumAI",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*"
+    ],
+    "win": {
+      "target": ["nsis"],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "mac": {
+      "target": ["dmg"],
+      "icon": "build/icon.icns",
+      "category": "public.app-category.productivity",
+      "identity": null
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "icon": "build/icon.png"
+    },
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/better-sqlite3/**"
+    ]
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "@radix-ui/react-dialog": "^1.0.5",
+    "@radix-ui/react-tabs": "^1.0.4",
+    "@radix-ui/react-toast": "^1.1.5",
+    "@tanstack/react-query": "^5.17.19",
+    "@tanstack/react-virtual": "^3.0.1",
+    "axios": "^1.6.5",
+    "better-sqlite3": "^12.6.2",
+    "dompurify": "^3.0.8",
+    "fast-xml-parser": "^4.3.3",
+    "marked": "^11.1.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "zustand": "^4.4.7"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^3.7.1",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/dompurify": "^3.0.5",
+    "@types/node": "^20.10.7",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
+    "@typescript-eslint/eslint-plugin": "^6.18.1",
+    "@typescript-eslint/parser": "^6.18.1",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.16",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^33.4.0",
+    "electron-builder": "^24.9.1",
+    "eslint": "^8.56.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "postcss": "^8.4.33",
+    "prettier": "^3.1.1",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.11",
+    "wait-on": "^7.2.0"
+  },
+  "author": "yuno-404",
+  "license": "GPL-3.0-only",
+  "keywords": [
+    "podcast",
+    "ai",
+    "gemini",
+    "electron",
+    "react",
+    "local-first",
+    "summary"
+  ]
+}
