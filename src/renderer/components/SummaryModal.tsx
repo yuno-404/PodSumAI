@@ -81,8 +81,8 @@ export function SummaryModal({
         title: "Summary generated",
         duration: 3000,
       });
-      queryClient.invalidateQueries({ queryKey: ["documents", episodeId] });
-      refetchDocuments();
+      await queryClient.invalidateQueries({ queryKey: ["documents", episodeId] });
+      await refetchDocuments();
     } catch (error: any) {
       removeToast(loadingToastId);
       addToast({
@@ -112,8 +112,8 @@ export function SummaryModal({
         title: "Summary generated",
         duration: 3000,
       });
-      queryClient.invalidateQueries({ queryKey: ["documents", episodeId] });
-      refetchDocuments();
+      await queryClient.invalidateQueries({ queryKey: ["documents", episodeId] });
+      await refetchDocuments();
     } catch (error: any) {
       removeToast(loadingToastId);
       addToast({

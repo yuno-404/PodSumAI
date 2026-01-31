@@ -222,9 +222,10 @@ export function useRunAiSummary() {
       if (!result.success) throw new Error(result.error);
       return result.data;
     },
-    onSuccess: (_, episodeId) => {
-      queryClient.invalidateQueries({ queryKey: ["documents", episodeId] });
-      queryClient.invalidateQueries({ queryKey: ["episodes"] });
+    onSuccess: async (_, episodeId) => {
+      await queryClient.invalidateQueries({ queryKey: ["documents", episodeId] });
+      await queryClient.invalidateQueries({ queryKey: ["documents-by-podcast"] });
+      await queryClient.invalidateQueries({ queryKey: ["episodes"] });
     },
     onSettled: () => {
       setGenerating(null);

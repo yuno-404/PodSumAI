@@ -87,8 +87,8 @@ export function EpisodeDetail({
         title: "Summary generated",
         duration: 3000,
       });
-      queryClient.invalidateQueries({ queryKey: ["documents", episode.id] });
-      refetchDocuments();
+      await queryClient.invalidateQueries({ queryKey: ["documents", episode.id] });
+      await refetchDocuments();
     } catch (error: any) {
       removeToast(loadingToastId);
       if (error.message === "API_KEY_MISSING") {
@@ -122,8 +122,8 @@ export function EpisodeDetail({
         title: "Summary generated",
         duration: 3000,
       });
-      queryClient.invalidateQueries({ queryKey: ["documents", episode.id] });
-      refetchDocuments();
+      await queryClient.invalidateQueries({ queryKey: ["documents", episode.id] });
+      await refetchDocuments();
     } catch (error: any) {
       removeToast(loadingToastId);
       if (error.message === "API_KEY_MISSING") {

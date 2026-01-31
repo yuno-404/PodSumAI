@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { useAppStore } from "./stores/useAppStore";
 import { useToastStore } from "./stores/useToastStore";
 import { Sidebar } from "./components/Sidebar";
@@ -65,7 +65,7 @@ function AppContent() {
   const runSummary = useRunAiSummary();
   const syncAll = useSyncAllPodcasts();
   const hasSynced = useRef(false);
-
+  const qc = useQueryClient();
   // Auto-sync all podcasts on startup
   useEffect(() => {
     if (podcasts.length > 0 && !hasSynced.current) {
@@ -74,6 +74,16 @@ function AppContent() {
     }
   }, [podcasts]);
 
+    // Global listener: when backend emits summary_completed, force-refresh all document queries
+  useEffect(() => {
+    const unsub = window.api.onSummaryCompleted((data) => {
+      qc.invalidateQueries({ queryKey: ["documents", data.episodeId] });
+      qc.invalidateQueries({ queryKey: ["documents-by-podcast"] });
+      qc.invalidateQueries({ queryKey: ["episodes"] });
+    });
+    return unsub;
+  }, [qc]);
+  
   const activePodcast =
     podcasts.find((p: any) => p.id === activePodcastId) || null;
 
