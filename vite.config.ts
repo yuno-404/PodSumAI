@@ -11,7 +11,7 @@ export default defineConfig({
   publicDir: '../../public',
 
   build: {
-    outDir: '../../dist-renderer',
+    outDir: '../../dist-electron/renderer',
     emptyOutDir: true,
     rollupOptions: {
       input: {

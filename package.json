@@ -25,7 +25,6 @@
       "output": "release"
     },
     "files": [
-      "dist/**/*",
       "dist-electron/**/*"
     ],
     "win": {
