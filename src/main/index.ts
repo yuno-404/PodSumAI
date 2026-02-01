@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, nativeImage } from "electron";
 import path from "path";
 import fs from "fs";
 import os from "os";
@@ -15,12 +15,14 @@ let mainWindow: BrowserWindow | null = null;
  * Create the main application window
  */
 function createWindow() {
+  const iconPath = path.join(__dirname, "../../build/icon.png");
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     minWidth: 900,
     minHeight: 600,
     title: "PodSumAI",
+    icon: nativeImage.createFromPath(iconPath),
     webPreferences: {
       preload: path.join(__dirname, "../preload/index.cjs"),
       contextIsolation: true,
