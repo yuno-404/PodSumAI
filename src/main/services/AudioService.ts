@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import axios from "axios";
 import os from "os";
+import { shell } from "electron";
 import { DatabaseManager } from "../database/index.js";
 import type { AudioProvisionResult, Episode } from "../../shared/types.js";
 
@@ -16,10 +17,18 @@ import type { AudioProvisionResult, Episode } from "../../shared/types.js";
  */
 export class AudioService {
   private tempDir = path.join(os.tmpdir(), "myapp-cache");
+  private downloadDir: string;
 
-  constructor(private db: DatabaseManager) {
+  constructor(
+    private db: DatabaseManager,
+    userDataPath: string,
+  ) {
+    this.downloadDir = path.join(userDataPath, "downloads");
     if (!fs.existsSync(this.tempDir)) {
       fs.mkdirSync(this.tempDir, { recursive: true });
+    }
+    if (!fs.existsSync(this.downloadDir)) {
+      fs.mkdirSync(this.downloadDir, { recursive: true });
     }
   }
 
@@ -56,7 +65,7 @@ export class AudioService {
       }
     }
 
-    // Download to temp
+    // Download to temp (sanitize episodeId — some feeds use URIs like "tag:soundcloud,2010:tracks/123")
     const safeId = episodeId.replace(/[^a-zA-Z0-9\-_]/g, "_");
     const tempPath = path.join(this.tempDir, `${safeId}.mp3`);
     await this.downloadStream(episode.audio_url, tempPath);
@@ -88,18 +97,21 @@ export class AudioService {
       throw new Error(`Episode ${episodeId} not found`);
     }
 
-    // Sanitize folder and filename
-    const sanitizedPodcast = podcastTitle.replace(/[^a-zA-Z0-9\s\-_]/g, "_");
-    const sanitizedTitle = episode.title.replace(/[^a-zA-Z0-9\s\-_]/g, "_");
+    // Sanitize folder and filename (preserve Unicode, strip filesystem-illegal chars)
+    const sanitizedPodcast =
+      podcastTitle
+        .replace(/[<>:"/\\|?*\x00-\x1f]/g, "_")
+        .replace(/\.+$/, "")
+        .trim() || "untitled";
+    const sanitizedTitle =
+      episode.title
+        .replace(/[<>:"/\\|?*\x00-\x1f]/g, "_")
+        .replace(/\.+$/, "")
+        .trim() || "untitled";
     const fileName = `${sanitizedTitle}.mp3`;
 
-    // ~/Music/Podcasts/{podcast_title}/{episode_title}.mp3
-    const destDir = path.join(
-      os.homedir(),
-      "Music",
-      "Podcasts",
-      sanitizedPodcast,
-    );
+    // {userData}/downloads/{podcast_title}/{episode_title}.mp3
+    const destDir = path.join(this.downloadDir, sanitizedPodcast);
 
     // Ensure directory exists
     if (!fs.existsSync(destDir)) {
@@ -231,12 +243,12 @@ export class AudioService {
   }
 
   /**
-   * Actually delete a file from disk
+   * Move a user file to trash (not permanent delete)
    *
-   * @param filePath - Path to file to delete
-   * @returns true if deleted successfully, false otherwise
+   * @param filePath - Path to file to trash
+   * @returns true if trashed successfully, false otherwise
    */
-  deleteFile(filePath: string): boolean {
+  async trashFile(filePath: string): Promise<boolean> {
     if (!filePath) {
       console.warn("[AudioService] No file path provided for deletion");
       return false;
@@ -248,16 +260,23 @@ export class AudioService {
     }
 
     try {
-      fs.unlinkSync(filePath);
-      console.log(`[AudioService] Successfully deleted file: ${filePath}`);
+      await shell.trashItem(filePath);
+      console.log(`[AudioService] Moved to trash: ${filePath}`);
       return true;
     } catch (error: any) {
       console.error(
-        `[AudioService] Failed to delete file: ${filePath}`,
+        `[AudioService] Failed to trash file: ${filePath}`,
         error.message,
       );
       return false;
     }
+  }
+
+  /**
+   * Get the persistent download directory path
+   */
+  getDownloadDir(): string {
+    return this.downloadDir;
   }
 
   /**

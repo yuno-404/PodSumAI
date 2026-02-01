@@ -66,14 +66,21 @@ export function useDeletePodcast() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (podcastId: string) => {
+    mutationFn: async ({
+      podcastId,
+      permanent,
+    }: {
+      podcastId: string;
+      permanent: boolean;
+    }) => {
       if (!window.api) throw new Error("API not available");
-      const result = await window.api.deletePodcast(podcastId);
+      const result = await window.api.deletePodcast(podcastId, permanent);
       if (!result.success) throw new Error(result.error);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["podcasts"] });
       queryClient.invalidateQueries({ queryKey: ["episodes"] });
+      queryClient.invalidateQueries({ queryKey: ["documents-by-podcast"] });
     },
   });
 }
@@ -349,3 +356,4 @@ export function useGetApiKey() {
     enabled: typeof window !== "undefined" && !!window.api,
   });
 }
+

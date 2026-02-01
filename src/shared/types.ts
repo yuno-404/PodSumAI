@@ -11,6 +11,7 @@ export interface Podcast {
   artwork_url: string | null;
   custom_prompt: string | null;
   last_fetched_at: string | null; // UTC ISO format
+  is_subscribed: number; // 1 = subscribed, 0 = soft-deleted
 }
 
 export interface Episode {

@@ -19,6 +19,7 @@ export function ApiKeyModal({ open, onOpenChange }: ApiKeyModalProps) {
   const queryClient = useQueryClient();
   const saveApiKeyMutation = useSaveApiKey();
   const removeApiKeyMutation = useRemoveApiKey();
+
   useEffect(() => {
     if (open) {
       loadApiKey();
@@ -53,7 +54,7 @@ export function ApiKeyModal({ open, onOpenChange }: ApiKeyModalProps) {
 
     setStatus("checking");
     setStatusMessage("Validating...");
-    
+
     saveApiKeyMutation.mutate(apiKey.trim(), {
       onSuccess: () => {
         setStatus("valid");
@@ -75,11 +76,12 @@ export function ApiKeyModal({ open, onOpenChange }: ApiKeyModalProps) {
         setStatus("idle");
         setStatusMessage("");
         queryClient.invalidateQueries({ queryKey: ["api-key"] });
+        onOpenChange(false);
       },
-        onError: (error: Error) => {
-        etStatus("invalid");
-        etStatusMessage(error.message || "Failed to remove API key");
-    },
+      onError: (error: Error) => {
+        setStatus("invalid");
+        setStatusMessage(error.message || "Failed to remove API key");
+      },
     });
   };
 
@@ -232,15 +234,24 @@ export function ApiKeyModal({ open, onOpenChange }: ApiKeyModalProps) {
               </div>
             )}
 
-            {/* Link */}
-            <a
-              href="https://makersuite.google.com/app/apikey"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center text-accent-primary hover:text-accent-primary/80 text-sm transition-colors"
-            >
-              Get API Key from Google AI Studio →
-            </a>
+            {/* Links */}
+            <div className="flex flex-col gap-1.5">
+              <a
+                href="https://makersuite.google.com/app/apikey"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center text-accent-primary hover:text-accent-primary/80 text-sm transition-colors"
+              >
+                Get API Key from Google AI Studio →
+              </a>
+              <button
+                type="button"
+                onClick={() => window.api.openEnvFolder()}
+                className="inline-flex items-center text-[#a1a1aa] hover:text-[#f4f4f5] text-sm transition-colors"
+              >
+                Open API Key Storage Location →
+              </button>
+            </div>
           </div>
 
           {/* Footer */}

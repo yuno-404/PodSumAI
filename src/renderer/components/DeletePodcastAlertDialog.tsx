@@ -3,14 +3,16 @@ import * as Dialog from "@radix-ui/react-dialog";
 interface DeletePodcastAlertDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
+  onSoftDelete: () => void;
+  onPermanentDelete: () => void;
   podcastTitle?: string;
 }
 
 export function DeletePodcastAlertDialog({
   open,
   onOpenChange,
-  onConfirm,
+  onSoftDelete,
+  onPermanentDelete,
   podcastTitle,
 }: DeletePodcastAlertDialogProps) {
   return (
@@ -43,8 +45,8 @@ export function DeletePodcastAlertDialog({
                       {podcastTitle}
                     </span>
                   )}
-                  This action will remove all related AI summary files and
-                  downloaded audio files, and cannot be undone
+                  Unsubscribing keeps your episodes, downloads, and AI summaries for later. 
+                  Permanently deleting removes all data and cannot be recovered
                 </Dialog.Description>
               </div>
             </div>
@@ -56,10 +58,16 @@ export function DeletePodcastAlertDialog({
                 </button>
               </Dialog.Close>
               <button
-                onClick={onConfirm}
+                onClick={onSoftDelete}
+                className="h-10 px-5 rounded-md border border-[#ffffff1a] text-[#f4f4f5] hover:bg-[#ffffff0d] transition-colors text-[14px] font-medium"
+              >
+                Unsubscribe
+              </button>
+              <button
+                onClick={onPermanentDelete}
                 className="h-10 px-5 rounded-md bg-[#dc2626] text-white hover:bg-[#b91c1c] transition-colors text-[14px] font-medium"
               >
-                Confirm Remove
+                Permanently Delete
               </button>
             </div>
           </div>

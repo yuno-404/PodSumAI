@@ -31,8 +31,8 @@ contextBridge.exposeInMainWorld("api", {
   updateCustomPrompt: (podcastId: string, prompt: string | null) =>
     ipcRenderer.invoke("update_custom_prompt", podcastId, prompt),
 
-  deletePodcast: (podcastId: string) =>
-    ipcRenderer.invoke("delete_podcast", podcastId),
+  deletePodcast: (podcastId: string, permanent: boolean) =>
+    ipcRenderer.invoke("delete_podcast", podcastId, permanent),
 
   // ===== AI Summary Methods =====
 
@@ -62,6 +62,10 @@ contextBridge.exposeInMainWorld("api", {
 
   // ===== Utility Methods =====
 
+  getDownloadPath: () => ipcRenderer.invoke("get_download_path"),
+
+  openDownloadFolder: () => ipcRenderer.invoke("open_download_folder"),
+
   getDbStats: () => ipcRenderer.invoke("get_db_stats"),
 
   // ===== API Key Methods =====
@@ -69,7 +73,10 @@ contextBridge.exposeInMainWorld("api", {
   saveApiKey: (apiKey: string) => ipcRenderer.invoke("save_api_key", apiKey),
 
   getApiKey: () => ipcRenderer.invoke("get_api_key"),
+
   removeApiKey: () => ipcRenderer.invoke("remove_api_key"),
+
+  openEnvFolder: () => ipcRenderer.invoke("open_env_folder"),
 
   syncAllPodcasts: () => ipcRenderer.invoke("sync_all_podcasts"),
 

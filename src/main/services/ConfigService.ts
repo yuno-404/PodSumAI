@@ -61,7 +61,6 @@ export class ConfigService {
       updatedLines.push(keyLine);
     }
 
-
     fs.writeFileSync(this.envPath, updatedLines.join("\n"), "utf8");
   }
 
@@ -102,6 +101,13 @@ export class ConfigService {
       .filter((line) => !line.startsWith("GEMINI_API_KEY="));
 
     fs.writeFileSync(this.envPath, updatedLines.join("\n"), "utf8");
+  }
+
+  /**
+   * Get the .env file path (for UI display)
+   */
+  getEnvPath(): string {
+    return this.envPath;
   }
 
   /**

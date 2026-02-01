@@ -12,6 +12,7 @@ export class DatabaseManager {
   public getPodcastByFeedUrl!: Database.Statement;
   public updatePodcastPrompt!: Database.Statement;
   public deletePodcast!: Database.Statement;
+  public softDeletePodcast!: Database.Statement;
   public upsertEpisode!: Database.Statement;
   public getEpisodesByPodcast!: Database.Statement;
   public getEpisodeById!: Database.Statement;
@@ -73,6 +74,15 @@ export class DatabaseManager {
       CREATE INDEX IF NOT EXISTS idx_documents_episode_id ON documents(episode_id);
       CREATE INDEX IF NOT EXISTS idx_documents_created_at ON documents(created_at DESC);
     `);
+
+    // Migration: soft delete support
+    try {
+      this.db.exec(
+        `ALTER TABLE podcasts ADD COLUMN is_subscribed INTEGER NOT NULL DEFAULT 1`,
+      );
+    } catch {
+      // Column already exists — safe to ignore
+    }
   }
 
   private initStatements() {
@@ -83,12 +93,13 @@ export class DatabaseManager {
       ON CONFLICT(feed_url) DO UPDATE SET
         title = excluded.title,
         artwork_url = excluded.artwork_url,
-        last_fetched_at = excluded.last_fetched_at
+        last_fetched_at = excluded.last_fetched_at,
+        is_subscribed = 1
       RETURNING id
     `);
 
     this.getPodcasts = this.db.prepare(
-      "SELECT * FROM podcasts ORDER BY title ASC",
+      "SELECT * FROM podcasts WHERE is_subscribed = 1 ORDER BY title ASC",
     );
 
     this.getPodcastById = this.db.prepare(
@@ -104,6 +115,10 @@ export class DatabaseManager {
     `);
 
     this.deletePodcast = this.db.prepare("DELETE FROM podcasts WHERE id = ?");
+
+    this.softDeletePodcast = this.db.prepare(
+      "UPDATE podcasts SET is_subscribed = 0 WHERE id = ?",
+    );
 
     // ===== Episodes =====
 

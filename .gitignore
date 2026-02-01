@@ -42,6 +42,9 @@ Thumbs.db
 # TypeScript build info
 *.tsbuildinfo
 
+# Claude Code
+.claude/
+
 # Misc
 *.local
 coverage

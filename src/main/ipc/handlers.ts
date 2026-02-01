@@ -1,4 +1,4 @@
-import { ipcMain, IpcMainInvokeEvent } from "electron";
+import { ipcMain, IpcMainInvokeEvent, shell } from "electron";
 import { PodcastService } from "../services/PodcastService.js";
 import { AudioService } from "../services/AudioService.js";
 import { GeminiService } from "../services/GeminiService.js";
@@ -125,9 +125,16 @@ export function registerHandlers(services: Services) {
 
   ipcMain.handle(
     "delete_podcast",
-    wrapHandler<void>("delete_podcast", (_, podcastId: string) => {
-      services.podcast.deletePodcast(podcastId);
-    }),
+    wrapHandler<void>(
+      "delete_podcast",
+      async (_, podcastId: string, permanent: boolean) => {
+        if (permanent) {
+          await services.podcast.deletePodcast(podcastId);
+        } else {
+          services.podcast.unsubscribePodcast(podcastId);
+        }
+      },
+    ),
   );
 
   // ===== AI Summary Handlers =====
@@ -203,12 +210,12 @@ export function registerHandlers(services: Services) {
 
   ipcMain.handle(
     "delete_download",
-    wrapHandler<void>("delete_download", (_, episodeId: string) => {
+    wrapHandler<void>("delete_download", async (_, episodeId: string) => {
       const filePath = services.audio.deleteDownload(episodeId);
       if (filePath) {
-        const deleted = services.audio.deleteFile(filePath);
-        if (!deleted) {
-          throw new Error("Failed to delete file from disk");
+        const trashed = await services.audio.trashFile(filePath);
+        if (!trashed) {
+          throw new Error("Failed to move file to trash");
         }
       }
     }),
@@ -222,6 +229,21 @@ export function registerHandlers(services: Services) {
   );
 
   // ===== Utility Handlers =====
+
+  ipcMain.handle(
+    "get_download_path",
+    wrapHandler<string>("get_download_path", () => {
+      return services.audio.getDownloadDir();
+    }),
+  );
+
+  ipcMain.handle(
+    "open_download_folder",
+    wrapHandler<void>("open_download_folder", async () => {
+      const dir = services.audio.getDownloadDir();
+      await shell.openPath(dir);
+    }),
+  );
 
   ipcMain.handle(
     "get_db_stats",
@@ -244,6 +266,22 @@ export function registerHandlers(services: Services) {
     "get_api_key",
     wrapHandler<string>("get_api_key", () => {
       return services.config.getApiKey();
+    }),
+  );
+
+  ipcMain.handle(
+    "remove_api_key",
+    wrapHandler<void>("remove_api_key", () => {
+      services.config.removeApiKey();
+      services.gemini.updateApiKey("");
+    }),
+  );
+
+  ipcMain.handle(
+    "open_env_folder",
+    wrapHandler<void>("open_env_folder", async () => {
+      const envPath = services.config.getEnvPath();
+      await shell.showItemInFolder(envPath);
     }),
   );
 
@@ -278,6 +316,6 @@ export function registerHandlers(services: Services) {
       },
     ),
   );
-  
+
   console.log("IPC handlers registered successfully");
 }

@@ -21,7 +21,10 @@ declare global {
         podcastId: string,
         prompt: string | null,
       ) => Promise<IPCResponse<void>>;
-      deletePodcast: (podcastId: string) => Promise<IPCResponse<void>>;
+      deletePodcast: (
+        podcastId: string,
+        permanent: boolean,
+      ) => Promise<IPCResponse<void>>;
 
       // AI Summary Methods
       runAiSummary: (episodeId: string) => Promise<IPCResponse<string>>;
@@ -41,6 +44,8 @@ declare global {
       getDownloadedEpisodes: () => Promise<IPCResponse<Episode[]>>;
 
       // Utility Methods
+      getDownloadPath: () => Promise<IPCResponse<string>>;
+      openDownloadFolder: () => Promise<IPCResponse<void>>;
       getDbStats: () => Promise<
         IPCResponse<{ podcasts: number; episodes: number; documents: number }>
       >;
@@ -49,8 +54,8 @@ declare global {
       saveApiKey: (apiKey: string) => Promise<IPCResponse<void>>;
       getApiKey: () => Promise<IPCResponse<string>>;
       removeApiKey: () => Promise<IPCResponse<void>>;
+      openEnvFolder: () => Promise<IPCResponse<void>>;
       syncAllPodcasts: () => Promise<IPCResponse<{ synced: number }>>;
-
 
       // Event Listeners
       onFeedSynced: (

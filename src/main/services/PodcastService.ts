@@ -159,8 +159,16 @@ export class PodcastService {
   }
 
   /**
-   * Delete podcast and all associated episodes
-   * CRITICAL: Preserve documents (summaries) and cleanup downloaded audio files
+   * Soft-delete: mark podcast as unsubscribed, preserving all data.
+   * Re-subscribing the same feed_url will automatically restore it.
+   */
+  unsubscribePodcast(podcastId: string): void {
+    this.db.softDeletePodcast.run(podcastId);
+  }
+
+  /**
+   * Hard delete podcast and all associated episodes/documents.
+   * Downloaded audio files are moved to trash.
    */
   async deletePodcast(podcastId: string) {
     const episodes = this.db.getEpisodesByPodcast.all(podcastId) as Episode[];
@@ -169,15 +177,6 @@ export class PodcastService {
     const downloadedFilePaths = episodes
       .filter((ep) => ep.is_downloaded && ep.local_file_path)
       .map((ep) => ep.local_file_path);
-
-    // // Collect documents to preserve (remove episode_id, keep content)
-    // const documentsToPreserve = episodes.flatMap((ep) =>
-    //   (this.db.getDocumentsByEpisode.all(ep.id) as any[]).map((doc) => ({
-    //     content: doc.content,
-    //     created_at: doc.created_at,
-    //     used_prompt: doc.used_prompt,
-    //   })),
-    // );
 
     // Delete podcast (cascade deletes episodes and their documents)
     this.db.deletePodcast.run(podcastId);
@@ -192,19 +191,6 @@ export class PodcastService {
         }
       }
     }
-
-
-
-    // Re-insert preserved documents without episode_id (for Knowledge page)
-    // documentsToPreserve.forEach((doc) => {
-    //   this.db.insertDocument.run(
-    //     this.db.generateId(),
-    //     null,
-    //     doc.content,
-    //     doc.created_at,
-    //     doc.used_prompt,
-    //   );
-    // });
   }
 
   /**

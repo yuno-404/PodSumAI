@@ -65,22 +65,34 @@ export function Sidebar({ onApiKeyClick }: SidebarProps) {
     setDeleteDialogOpen(true);
   };
 
-  const handleConfirmDelete = async () => {
+  const handleSoftDelete = async () => {
     if (!podcastToDelete) return;
 
     try {
-      await deleteMutation.mutateAsync(podcastToDelete.id);
-      addToast({
-        type: "success",
-        title: "Podcast removed",
-        duration: 3000,
+      await deleteMutation.mutateAsync({
+        podcastId: podcastToDelete.id,
+        permanent: false,
       });
-    } catch (error) {
-      addToast({
-        type: "error",
-        title: "Remove failed",
-        duration: 3000,
+      addToast({ type: "success", title: "已取消訂閱", duration: 3000 });
+    } catch {
+      addToast({ type: "error", title: "操作失敗", duration: 3000 });
+    } finally {
+      setDeleteDialogOpen(false);
+      setPodcastToDelete(null);
+    }
+  };
+
+  const handlePermanentDelete = async () => {
+    if (!podcastToDelete) return;
+
+    try {
+      await deleteMutation.mutateAsync({
+        podcastId: podcastToDelete.id,
+        permanent: true,
       });
+      addToast({ type: "success", title: "已永久刪除", duration: 3000 });
+    } catch {
+      addToast({ type: "error", title: "刪除失敗", duration: 3000 });
     } finally {
       setDeleteDialogOpen(false);
       setPodcastToDelete(null);
@@ -225,11 +237,31 @@ export function Sidebar({ onApiKeyClick }: SidebarProps) {
       </div>
 
       {/* Sidebar Bottom */}
-      <div className="p-4">
+      <div className="p-4 space-y-1">
+        {/* Open download folder */}
+        <button
+          onClick={() => window.api.openDownloadFolder()}
+          className="w-full h-9 flex items-center gap-2 px-3 rounded-md hover:bg-white-10 transition-colors cursor-pointer"
+        >
+          <svg
+            className="w-3.5 h-3.5 text-[#a1a1aa]"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            viewBox="0 0 24 24"
+          >
+            <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
+          </svg>
+          <span className="text-[#a1a1aa] text-xs truncate">
+            Downloads
+          </span>
+        </button>
         {/* API Status */}
         <button
           onClick={onApiKeyClick}
-          className="w-full h-9 flex items-center gap-2 px-3 rounded-md bg-white-5 hover:bg-white-10 transition-colors cursor-pointer"
+          className="w-full h-9 flex items-center gap-2 px-3 rounded-md hover:bg-white-10 transition-colors cursor-pointer"
         >
           {/* Lucide key icon */}
           <svg
@@ -255,7 +287,8 @@ export function Sidebar({ onApiKeyClick }: SidebarProps) {
       <DeletePodcastAlertDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        onConfirm={handleConfirmDelete}
+        onSoftDelete={handleSoftDelete}
+        onPermanentDelete={handlePermanentDelete}
         podcastTitle={podcastToDelete?.title}
       />
     </div>
