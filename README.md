@@ -1,9 +1,13 @@
 # PodSumAI
 
 A desktop app that manages podcast subscriptions and generates AI-powered episode summaries using Google Gemini.
+<img width="1179" height="784" alt="image" src="https://github.com/user-attachments/assets/833650d7-96b9-4891-bbee-d5fdd0e4f2cf" />
+<img width="1181" height="781" alt="image" src="https://github.com/user-attachments/assets/09a832f1-49f8-47e6-96c6-f5d57594b3ed" />
+<img width="1178" height="780" alt="image" src="https://github.com/user-attachments/assets/0bf02b4e-e48f-41ed-9a6e-caa869bf160b" />
 
 ![Electron](https://img.shields.io/badge/Electron-33-blue)
 ![License](https://img.shields.io/badge/License-GPL--3.0-green)
+
 
 ## Features
 
